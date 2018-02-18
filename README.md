@@ -1,0 +1,2 @@
+# JujaWeekIOFileSynch
+HomeWork tast - 
