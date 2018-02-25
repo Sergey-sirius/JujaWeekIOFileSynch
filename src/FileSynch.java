@@ -4,8 +4,18 @@ import java.util.*;
 
 public class FileSynch {
 
-    static Map<String,Long> sourceList = new HashMap<>();
-    static Map<String,Long> destList = new HashMap<>();
+    static Map<String,Long> sourceList = new TreeMap<>();
+    static Map<String,Long> destList = new TreeMap<>();
+
+//    Map sortedMap = new TreeMap(new Comparator() {
+//
+//        @Override
+//        public int compare(K k1, K k2) {
+//            return k1.compareTo(k2);
+//        }
+//
+//    });
+//sortedMap.putAll(Map);
 
     public static void main(String[] args) throws IOException {
         args = new String[]{"D:/!!!_0///","D:/dest"};
@@ -34,42 +44,58 @@ public class FileSynch {
         System.out.println("Source folder : " + args[0]);
         System.out.println("Destination folder : " + args[1]);
 
-        File fileSource = new File(args[0]);
-        File fileDestination = new File(args[1]);
+        File folderSource = new File(args[0]);
+        File folderDestination = new File(args[1]);
 
-        if(fileSource.exists()){
+        // получаем список файлов источника
+        if(folderSource.exists()){
             getFile(args[0],sourceList,args[0]);
-//            sourceList.forEach((k, v) -> {
-//                System.out.println("fileSource = " + k + "; size = " + v);
-//            });
         }else{
-            System.out.println("FilePath " + fileDestination + " NOT exist");
+            System.out.println("FilePath " + folderDestination + " NOT exist");
             System.exit(-1);
         }
 
-        if(fileDestination.exists()){
+        // получаем список файлов приемника
+        if(folderDestination.exists()){
             getFile(args[1],destList,args[1]);
-//            destList.forEach((k, v) -> {
-//                System.out.println("fileDest = " + k + "; size = " + v);
-//            });
             destList.forEach((k,v) -> {
-                if(!sourceList.containsKey(k)){
-                    File f = new File(k);
-                    f.delete();
-                    destList.remove(k);
+                // если файлы есть в обоих каталогах и размеры одинаковые
+                if(sourceList.containsKey(k) && sourceList.get(k) == v){
+                    sourceList.remove(k);
+//                    destList.remove(k);
+                }else
+                // если файлы есть в обоих каталогах и размеры разные
+                // то удаляем файл из папки-приемника
+                if(!sourceList.containsKey(k) || (sourceList.containsKey(k) && sourceList.get(k) != v)){
+                    File f = new File(finalArgs[1]+k);
+                    boolean isDelete = false;
+                    if(f.isFile()){
+                        isDelete = f.delete();
+//                        destList.remove(k);
+                        System.out.println("delete file " + (finalArgs[1] + k) + "; " + isDelete);
+                    }
                 }
-                if(sourceList.containsKey(k) && sourceList.get(k) != v){
-                    File f = new File(k);
-                    f.delete();
-//                    copyFile(,k);
+            });
+            destList.forEach((k,v) -> {
+                // удаляем пустые катологи в приемнике
+                if(!sourceList.containsKey(k) || (sourceList.containsKey(k) && sourceList.get(k) != v)){
+                    File f = new File(finalArgs[1]+k);
+                    System.out.println("Folder : " + finalArgs[1]+k +"; f.length() = " + f.length());
+                    System.out.println("Folder : " + finalArgs[1]+k +"; f.listFiles().length = " + f.listFiles().length);
+                    if(f.isDirectory() && f.listFiles().length == 0 ){
+//                        destList.remove(k);
+                        f.deleteOnExit();
+                        System.out.println("delete folder " + (finalArgs[1] + k) + "; ");
+                    }
                 }
             });
         }else{
-            fileDestination.mkdir();
-            sourceList.forEach((k, v) -> {
-                copyFile(finalArgs[0] + k,finalArgs[1]); System.out.println("fileSource = " + k + "; size = " + v);
-            });
+            folderDestination.mkdir();
         }
+        sourceList.forEach((k, v) -> {
+            copyFile(finalArgs[0],finalArgs[1], k);
+//            System.out.println("copy file " + (finalArgs[0] + k) + " into " + finalArgs[1]);
+        });
     }
 
     public static void getFile(String folder, Map fileSet, String path) throws IOException {
@@ -90,7 +116,7 @@ public class FileSynch {
         }
     }
 
-    public static boolean copyFile(String source, String destination){
+    public static boolean copyFile(String source, String destination, String fileName){
 
         return true;
     }
