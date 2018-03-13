@@ -91,7 +91,7 @@ public class FileSynch {
         File fDestination = new File(folderDestination + currentPath.replace(folderSource,""));
 
         if(!fDestination.exists()){
-            copyFile(currentPath,folderDestination + currentPath.replace(folderSource,""),1);
+            copyFile(currentPath,folderDestination + currentPath.replace(folderSource,""));
         }
 
         if(f.isFile()){
@@ -106,21 +106,23 @@ public class FileSynch {
     }
 
 
-    public static boolean copyFile(String sourcePath, String destinationPath, int bufferSize){
+    public static boolean copyFile(String sourcePath, String destinationPath){
         File sourceFile = new File(sourcePath);
 
         if(sourceFile.isFile()){
             System.out.println("Copy file " + sourcePath + " to " + destinationPath);
-            try {
-                FileInputStream fis = new FileInputStream(sourceFile);
-                FileOutputStream fos = new FileOutputStream(new File(destinationPath));
-                byte[] inByteArr = new byte[bufferSize];
-                while (fis.read(inByteArr) != -1) {
-                    fos.write(inByteArr);
-                    inByteArr = new byte[bufferSize];
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
+            try(FileInputStream fin=new FileInputStream(sourcePath);
+                FileOutputStream fos=new FileOutputStream(destinationPath))
+            {
+                byte[] buffer = new byte[fin.available()];
+                // считываем буфер
+                fin.read(buffer, 0, buffer.length);
+                // записываем из буфера в файл
+                fos.write(buffer, 0, buffer.length);
+            }
+            catch(IOException ex){
+
+                System.out.println(ex.getMessage());
             }
         }else{
             System.out.println("Create new folder " + destinationPath);
