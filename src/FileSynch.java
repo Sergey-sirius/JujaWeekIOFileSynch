@@ -1,6 +1,8 @@
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class FileSynch {
 
@@ -22,7 +24,7 @@ public class FileSynch {
 
         // получаем список файлов приемника
         if(folderDestination.exists()){
-            getFile(args[1],destList,args[1]);
+            checkDestination(args[0],args[1],args[1]);
         }else{
             if(!folderDestination.mkdir()){
                 System.out.println("Anything wrong - " + folderDestination.getCanonicalPath() + " NOT ecreated.");
@@ -31,25 +33,11 @@ public class FileSynch {
         }
         // получаем список файлов источника
         if(folderSource.exists()){
-            getFile(args[0],sourceList,args[0]);
+            checkSource(args[0],args[1],args[0]);
         }else{
             System.out.println("FilePath " + folderSource.getCanonicalPath() + " NOT exist");
             System.exit(-1);
         }
-
-        System.out.println("\n1---------------------------\n");
-        sourceList.forEach((k, v) -> {
-            System.out.println("sourceList file " + k + "; size = " + v);
-        });
-
-        System.out.println("\n2---------------------------\n");
-
-
-        System.out.println("\n4---------------------------\n");
-
-        sourceList.forEach((k, v) -> {
-            System.out.println("sourceList file " + k + "; size = " + v);
-        });
 
     }
 
@@ -74,51 +62,79 @@ public class FileSynch {
         args[1] = args[1].lastIndexOf("\\") == args[1].length() + 1 ? args[1] : args[1] + "\\";
     }
 
-    public static void deleteFolder(String path){
-        System.out.println("deleteFolder:path = " + path);
-        File f = new File(path);
-        if(f.isFile()){
-            f.delete();
-            return;
-        }
-        File[] fileList = f.listFiles();
-//        if(fileList.length == 0){
-//            f.deleteOnExit();
-//            return true;
-//        }
-        for(File file:fileList){
-            deleteFolder(file.getAbsolutePath());
-//            if(!file.isFile()){
-////                file.deleteOnExit();
-//                file.delete();
-//            }
-            file.delete();
-        }
-        f.delete();
-    }
+    public static void checkDestination(String folderSource, String folderDestination, String currentPath){
 
-    public static void getFile(String folder, Map fileSet, String path) throws IOException {
-        File f = new File(folder);
-        if(!f.exists()){
-            System.out.println("There is incorrect path");
-        }
+        File f = new File(currentPath);
+        File fSource = new File(folderSource + currentPath.replace(folderDestination,""));
         if(f.isFile()) {
-            fileSet.put(f.getAbsolutePath().replace(path,"") ,f.length());
+            if(!fSource.exists() || !fSource.isFile() || (f.length() != fSource.length())){
+                System.out.println("Delete destination file " + currentPath);
+                f.delete();
+            }
             return;
         }
-        if(!f.getAbsolutePath().equals(path.substring(0,path.length()-1))) {
-            fileSet.put(f.getAbsolutePath().replace(path, ""), f.isFile() ? f.length() : 0L);
-        }
+
         File[] files = f.listFiles();
         for(File file : files) {
-            getFile(file.getAbsolutePath(),fileSet,path);
+            checkDestination(folderSource,folderDestination,file.getAbsolutePath());
+        }
+
+        if(!fSource.exists() || !fSource.isDirectory()){
+            System.out.println("Delete folder " + currentPath);
+            f.delete();
+        }
+    }
+
+    public static void checkSource(String folderSource, String folderDestination, String currentPath){
+
+        File f = new File(currentPath);
+        File fDestination = new File(folderDestination + currentPath.replace(folderSource,""));
+
+        if(!fDestination.exists()){
+            copyFile(currentPath,folderDestination + currentPath.replace(folderSource,""));
+        }
+
+        if(f.isFile()){
+            return;
+        }
+
+        File[] files = f.listFiles();
+        for(File file : files) {
+            checkSource(folderSource,folderDestination,file.getAbsolutePath());
         }
 
     }
 
-    public static boolean copyFile(String source, String destination, String fileName){
 
+    public static boolean copyFile(String sourcePath, String destinationPath){
+        File sourceFile = new File(sourcePath);
+
+        if(sourceFile.isFile()){
+            System.out.println("Copy file " + sourcePath + " to " + destinationPath);
+            try {
+                BufferedWriter destinationFileWriter = new BufferedWriter(new FileWriter(destinationPath, true));
+                try (BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(
+                                new FileInputStream(sourceFile), StandardCharsets.UTF_8 /*cp1251", StandardCharsets.UTF_8*/))) {
+                    String line;
+
+                    while ((line = reader.readLine()) != null) {
+                        destinationFileWriter.write(line);
+                    }
+                    destinationFileWriter.close();
+
+                } catch (IOException e) {
+                    // log error
+                    Logger.getLogger(FileSynch.class.getName()).log(Level.SEVERE, null, e);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }else{
+            System.out.println("Create new folder " + destinationPath);
+            File destinationFolder = new File(destinationPath);
+            destinationFolder.mkdir();
+        }
         return true;
     }
-
 }
