@@ -91,7 +91,7 @@ public class FileSynch {
         File fDestination = new File(folderDestination + currentPath.replace(folderSource,""));
 
         if(!fDestination.exists()){
-            copyFile(currentPath,folderDestination + currentPath.replace(folderSource,""),1024);
+            copyFile(currentPath,folderDestination + currentPath.replace(folderSource,""),1);
         }
 
         if(f.isFile()){
