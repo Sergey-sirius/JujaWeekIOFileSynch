@@ -1,18 +1,9 @@
 import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class FileSynch {
 
-    static Map<String,Long> sourceList = new TreeMap<>();
-    static Map<String,Long> destList = new TreeMap<>();
-
     public static void main(String[] args) throws IOException {
-
-        args = new String[]{"D:/!!!!!_source","D:/!!!!!_dest"};
-
+//        args = new String[]{"D:/!!!!!_source","D:/!!!!!_dest"};
         checkParams(args);
 
         System.out.println("Source folder : " + args[0]);
@@ -20,7 +11,6 @@ public class FileSynch {
 
         File folderSource = new File(args[0]);
         File folderDestination = new File(args[1]);
-
 
         // получаем список файлов приемника
         if(folderDestination.exists()){
@@ -62,7 +52,7 @@ public class FileSynch {
         args[1] = args[1].lastIndexOf("\\") == args[1].length() + 1 ? args[1] : args[1] + "\\";
     }
 
-    public static void checkDestination(String folderSource, String folderDestination, String currentPath){
+    private static void checkDestination(String folderSource, String folderDestination, String currentPath){
 
         File f = new File(currentPath);
         File fSource = new File(folderSource + currentPath.replace(folderDestination,""));
@@ -85,7 +75,7 @@ public class FileSynch {
         }
     }
 
-    public static void checkSource(String folderSource, String folderDestination, String currentPath){
+    private static void checkSource(String folderSource, String folderDestination, String currentPath){
 
         File f = new File(currentPath);
         File fDestination = new File(folderDestination + currentPath.replace(folderSource,""));
@@ -105,8 +95,7 @@ public class FileSynch {
 
     }
 
-
-    public static boolean copyFile(String sourcePath, String destinationPath){
+    private static boolean copyFile(String sourcePath, String destinationPath){
         File sourceFile = new File(sourcePath);
 
         if(sourceFile.isFile()){
