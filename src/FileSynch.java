@@ -91,7 +91,7 @@ public class FileSynch {
         File fDestination = new File(folderDestination + currentPath.replace(folderSource,""));
 
         if(!fDestination.exists()){
-            copyFile(currentPath,folderDestination + currentPath.replace(folderSource,""));
+            copyFile(currentPath,folderDestination + currentPath.replace(folderSource,""),1024);
         }
 
         if(f.isFile()){
@@ -106,26 +106,18 @@ public class FileSynch {
     }
 
 
-    public static boolean copyFile(String sourcePath, String destinationPath){
+    public static boolean copyFile(String sourcePath, String destinationPath, int bufferSize){
         File sourceFile = new File(sourcePath);
 
         if(sourceFile.isFile()){
             System.out.println("Copy file " + sourcePath + " to " + destinationPath);
             try {
-                BufferedWriter destinationFileWriter = new BufferedWriter(new FileWriter(destinationPath, true));
-                try (BufferedReader reader = new BufferedReader(
-                        new InputStreamReader(
-                                new FileInputStream(sourceFile), StandardCharsets.UTF_8 /*cp1251", StandardCharsets.UTF_8*/))) {
-                    String line;
-
-                    while ((line = reader.readLine()) != null) {
-                        destinationFileWriter.write(line);
-                    }
-                    destinationFileWriter.close();
-
-                } catch (IOException e) {
-                    // log error
-                    Logger.getLogger(FileSynch.class.getName()).log(Level.SEVERE, null, e);
+                FileInputStream fis = new FileInputStream(sourceFile);
+                FileOutputStream fos = new FileOutputStream(new File(destinationPath));
+                byte[] inByteArr = new byte[bufferSize];
+                while (fis.read(inByteArr) != -1) {
+                    fos.write(inByteArr);
+                    inByteArr = new byte[bufferSize];
                 }
             } catch (IOException e) {
                 e.printStackTrace();
